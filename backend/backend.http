@@ -1,0 +1,9 @@
+### сохранить фильм
+POST http://localhost:5181/api/movies/save
+Content-Type: application/json
+
+{
+  "title": "Avatar",
+  "overview": "Test movie",
+  "posterPath": "test.jpg"
+}
