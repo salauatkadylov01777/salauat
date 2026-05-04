@@ -1,5 +1,4 @@
-// frontend movie interface
-// import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function App() {
   const [movies, setMovies] = useState([]);
@@ -9,152 +8,109 @@ export default function App() {
 
   const API = "http://localhost:5181/api/movies";
 
-  // 🔥 Загрузка популярных фильмов
+  // 🔥 Popular
   async function loadPopular() {
-    try {
-      setLoading(true);
-
-      const res = await fetch(`${API}/popular`);
-      const data = await res.json();
-
-      setMovies(data.results || []);
-    } catch (err) {
-      console.error("Popular error:", err);
-      setMovies([]);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const res = await fetch(`${API}/popular`);
+    const text = await res.text();
+    const data = JSON.parse(text);
+    setMovies(data.results || []);
+    setLoading(false);
   }
 
-  // 🔍 Поиск фильмов
+  // 🔍 Search
   async function searchMovies() {
     if (!query.trim()) return;
 
-    try {
-      setLoading(true);
-
-      const res = await fetch(`${API}/search?query=${query}`);
-      const data = await res.json();
-
-      setMovies(data.results || []);
-    } catch (err) {
-      console.error("Search error:", err);
-      setMovies([]);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const res = await fetch(`${API}/search?query=${query}`);
+    const text = await res.text();
+    const data = JSON.parse(text);
+    setMovies(data.results || []);
+    setLoading(false);
   }
 
-  // ❤️ Загрузка сохраненных фильмов
+  // ❤️ Saved
   async function loadSaved() {
-    try {
-      setLoading(true);
-
-      const res = await fetch(`${API}/saved`);
-      const data = await res.json();
-
-      setSavedMovies(data);
-    } catch (err) {
-      console.error("Saved error:", err);
-      setSavedMovies([]);
-    } finally {
-      setLoading(false);
-    }
+    const res = await fetch(`${API}/saved`);
+    const data = await res.json();
+    setSavedMovies(data);
   }
 
-  // 💾 Сохранить фильм в SQLite
+  // 💾 Save
   async function saveMovie(movie) {
-    try {
-      await fetch(`${API}/save`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          tmdbId: movie.id,
-          title: movie.title,
-          overview: movie.overview,
-          posterPath: movie.poster_path
-        })
-      });
+    await fetch(`${API}/save`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        tmdbId: movie.id,
+        title: movie.title,
+        overview: movie.overview,
+        posterPath: movie.poster_path
+      })
+    });
 
-      alert("Фильм сохранён!");
-      loadSaved();
-    } catch (err) {
-      console.error("Save error:", err);
-    }
+    alert("Сохранено!");
+    loadSaved();
   }
 
-  // Авто загрузка при старте
+  // ⭐ СОРТИРОВКА
+  function sortByRating() {
+    const sorted = [...movies].sort(
+      (a, b) => (b.vote_average || 0) - (a.vote_average || 0)
+    );
+    setMovies(sorted);
+  }
+
   useEffect(() => {
     loadPopular();
     loadSaved();
   }, []);
 
   return (
-    <div style={{ fontFamily: "Arial", padding: 20 }}>
-      <h1 style={{ marginBottom: 10 }}>🎬 Movie App (TMDB)</h1>
+    <div style={{ padding: 20, fontFamily: "Arial", background: "#111", color: "white", minHeight: "100vh" }}>
+      <h1>🎬 Movie App</h1>
 
-      {/* Search */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+      <div style={{ marginBottom: 20 }}>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Введите название фильма..."
-          style={{
-            padding: 10,
-            width: 300,
-            borderRadius: 8,
-            border: "1px solid gray"
-          }}
+          placeholder="Search..."
+          style={{ padding: 10, width: 200 }}
         />
 
-        <button style={btnStyle} onClick={searchMovies}>
-          Search
-        </button>
+        <button style={btnStyle} onClick={searchMovies}>Search</button>
+        <button style={btnStyle} onClick={loadPopular}>Popular</button>
+        <button style={btnStyle} onClick={loadSaved}>Saved</button>
 
-        <button style={btnStyle} onClick={loadPopular}>
-          Popular
-        </button>
-
-        <button style={btnStyle} onClick={loadSaved}>
-          Saved
+        {/* 🔥 НОВАЯ КНОПКА */}
+        <button style={btnStyle} onClick={sortByRating}>
+          ⭐ Sort
         </button>
       </div>
 
-      {/* Loading */}
       {loading && <p>⏳ Loading...</p>}
 
-      {/* Movies list */}
-      <h2>Результаты:</h2>
       <div style={gridStyle}>
         {movies.length > 0 ? (
-          movies.map((movie) => (
-            <div key={movie.id} style={cardStyle}>
-              {movie.poster_path ? (
-                <img
-                  src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                  alt={movie.title}
-                  style={{ width: "100%", borderRadius: 10 }}
-                />
-              ) : (
-                <div
-                  style={{
-                    height: 250,
-                    background: "#ddd",
-                    borderRadius: 10
-                  }}
-                />
-              )}
+          movies.map((m) => (
+            <div
+              key={m.id}
+              style={cardStyle}
+              onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+            >
+              <img
+                src={`https://image.tmdb.org/t/p/w300${m.poster_path}`}
+                style={{ width: "100%", borderRadius: 10 }}
+              />
 
-              <h3>{movie.title}</h3>
-              <p style={{ fontSize: 14 }}>
-                {movie.overview
-                  ? movie.overview.slice(0, 100) + "..."
-                  : "Нет описания"}
-              </p>
+              <h3>{m.title}</h3>
+              <p>⭐ {m.vote_average}</p>
 
-              <button style={btnStyle} onClick={() => saveMovie(movie)}>
+              <button style={btnStyle} onClick={() => saveMovie(m)}>
                 Save
               </button>
             </div>
@@ -164,14 +120,11 @@ export default function App() {
         )}
       </div>
 
-      {/* Saved movies */}
-      <h2 style={{ marginTop: 40 }}>❤️ Saved Movies:</h2>
+      <h2 style={{ marginTop: 30 }}>❤️ Saved:</h2>
       <ul>
-        {savedMovies.length > 0 ? (
-          savedMovies.map((m) => <li key={m.id}>{m.title}</li>)
-        ) : (
-          <p>Пока ничего не сохранено</p>
-        )}
+        {savedMovies.map((m) => (
+          <li key={m.id}>{m.title}</li>
+        ))}
       </ul>
     </div>
   );
@@ -179,11 +132,12 @@ export default function App() {
 
 // 🎨 styles
 const btnStyle = {
+  marginLeft: 10,
   padding: "10px 15px",
   borderRadius: 8,
   border: "none",
   cursor: "pointer",
-  background: "black",
+  background: "#ff3d00",
   color: "white"
 };
 
@@ -194,8 +148,8 @@ const gridStyle = {
 };
 
 const cardStyle = {
-  border: "1px solid #ddd",
-  borderRadius: 15,
   padding: 10,
-  boxShadow: "0px 2px 6px rgba(0,0,0,0.15)"
+  borderRadius: 10,
+  background: "#222",
+  transition: "0.3s"
 };
