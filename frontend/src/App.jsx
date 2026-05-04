@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// frontend movie interface
+// import React, { useEffect, useState } from "react";
 
 export default function App() {
   const [movies, setMovies] = useState([]);
