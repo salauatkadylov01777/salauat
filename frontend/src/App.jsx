@@ -56,7 +56,7 @@ export default function App() {
     loadSaved();
   }
 
-  // ⭐ СОРТИРОВКА
+  // ⭐ Сортировка
   function sortByRating() {
     const sorted = [...movies].sort(
       (a, b) => (b.vote_average || 0) - (a.vote_average || 0)
@@ -70,67 +70,94 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ padding: 20, fontFamily: "Arial", background: "#111", color: "white", minHeight: "100vh" }}>
-      <h1>🎬 Movie App</h1>
+    <div style={backgroundStyle}>
+      <div style={overlayStyle}>
+        <h1 style={{ textAlign: "center" }}>🎬 Movie App</h1>
 
-      <div style={{ marginBottom: 20 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search..."
-          style={{ padding: 10, width: 200 }}
-        />
+        <div style={{ marginBottom: 20, textAlign: "center" }}>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search..."
+            style={{
+              padding: 10,
+              width: 200,
+              borderRadius: 8,
+              border: "none"
+            }}
+          />
 
-        <button style={btnStyle} onClick={searchMovies}>Search</button>
-        <button style={btnStyle} onClick={loadPopular}>Popular</button>
-        <button style={btnStyle} onClick={loadSaved}>Saved</button>
+          <button style={btnStyle} onClick={searchMovies}>Search</button>
+          <button style={btnStyle} onClick={loadPopular}>Popular</button>
+          <button style={btnStyle} onClick={loadSaved}>Saved</button>
+          <button style={btnStyle} onClick={sortByRating}>⭐ Sort</button>
+        </div>
 
-        {/* 🔥 НОВАЯ КНОПКА */}
-        <button style={btnStyle} onClick={sortByRating}>
-          ⭐ Sort
-        </button>
+        {loading && <h2>⏳ Loading...</h2>}
+
+        <div style={gridStyle}>
+          {movies.length > 0 ? (
+            movies.map((m) => (
+              <div
+                key={m.id}
+                style={cardStyle}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
+              >
+                {m.poster_path && (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w300${m.poster_path}`}
+                    style={{ width: "100%", borderRadius: 10 }}
+                  />
+                )}
+
+                <h3>{m.title}</h3>
+                <p>⭐ {m.vote_average}</p>
+
+                <button style={btnStyle} onClick={() => saveMovie(m)}>
+                  Save
+                </button>
+              </div>
+            ))
+          ) : (
+            !loading && <p>Нет фильмов</p>
+          )}
+        </div>
+
+        <h2 style={{ marginTop: 30 }}>❤️ Saved:</h2>
+        <ul>
+          {savedMovies.map((m) => (
+            <li key={m.id}>{m.title}</li>
+          ))}
+        </ul>
       </div>
-
-      {loading && <p>⏳ Loading...</p>}
-
-      <div style={gridStyle}>
-        {movies.length > 0 ? (
-          movies.map((m) => (
-            <div
-              key={m.id}
-              style={cardStyle}
-              onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-              onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-            >
-              <img
-                src={`https://image.tmdb.org/t/p/w300${m.poster_path}`}
-                style={{ width: "100%", borderRadius: 10 }}
-              />
-
-              <h3>{m.title}</h3>
-              <p>⭐ {m.vote_average}</p>
-
-              <button style={btnStyle} onClick={() => saveMovie(m)}>
-                Save
-              </button>
-            </div>
-          ))
-        ) : (
-          !loading && <p>Нет фильмов</p>
-        )}
-      </div>
-
-      <h2 style={{ marginTop: 30 }}>❤️ Saved:</h2>
-      <ul>
-        {savedMovies.map((m) => (
-          <li key={m.id}>{m.title}</li>
-        ))}
-      </ul>
     </div>
   );
 }
 
 // 🎨 styles
+
+const backgroundStyle = {
+  minHeight: "100vh",
+  backgroundImage:
+    "url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba')",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat"
+};
+
+const overlayStyle = {
+  background: "rgba(0,0,0,0.75)",
+  minHeight: "100vh",
+  padding: 20,
+  color: "white",
+  fontFamily: "Arial"
+};
+
 const btnStyle = {
   marginLeft: 10,
   padding: "10px 15px",
